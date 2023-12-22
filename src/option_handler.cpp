@@ -1,6 +1,7 @@
 #include "../include/option_handler.h"
 
 #include <iostream>
+#include <fstream>
 
 #define RESET         "\033[0m"
 #define BRIGHT_RED    "\033[91m"
@@ -8,9 +9,10 @@
 
 /*
 Arguments:
+-i input
+-o outputfile.txt (output)
 -m file/lines/words (mode)
 -v true/false (verbose)
--o outputfile.txt (output)
 */
 
 int handleOptions(int argc, char* argv[]) {
@@ -27,14 +29,17 @@ int handleOptions(int argc, char* argv[]) {
         if (currentFlag == "-h") {
             help();
             return 0;
+        } else if (currentFlag == "-i") {
+            if (handleInputOption(optionMap, currentFlag, nextArgument) == 1)
+                return 1;
+        } else if (currentFlag == "-o") {
+            if (handleOutputOption(optionMap, currentFlag, nextArgument) == 1)
+                return 1;
         } else if (currentFlag == "-m") {
             if (handleModeOption(optionMap, currentFlag, nextArgument) == 1)
                 return 1;
         } else if (currentFlag == "-v") {
             if (handleVerboseOption(optionMap, currentFlag, nextArgument) == 1)
-                return 1;
-        } else if (currentFlag == "-o") {
-            if (handleOutputOption(optionMap, currentFlag, nextArgument) == 1)
                 return 1;
         } else {
             handleUnrecognizedFlag(currentFlag);
@@ -50,9 +55,32 @@ int handleOptions(int argc, char* argv[]) {
 void help() {
     std::cout << "Options:" << std::endl;
     std::cout << "-h show options" << std::endl;
+    std::cout << "-i set input file" << std::endl;
+    std::cout << "-o set output file" << std::endl;
     std::cout << "-m set mode" << std::endl;
-    std::cout << "-o write to output file" << std::endl;
     std::cout << "-v print output" << std::endl;
+}
+
+int handleInputOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument) {
+    if (checkDuplicateFlag(optionMap, currentFlag))
+        return 1;
+    if (checkMissingArgument(currentFlag, nextArgument))
+        return 1;
+    if (checkMissingFile(currentFlag, nextArgument))
+        return 1;
+    optionMap[currentFlag] = nextArgument;
+    return 0;
+}
+
+int handleOutputOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument) {
+    if (checkDuplicateFlag(optionMap, currentFlag))
+        return 1;
+    if (checkMissingArgument(currentFlag, nextArgument))
+        return 1;
+    if (checkInvalidFileName(currentFlag, nextArgument))
+        return 1;
+    optionMap[currentFlag] = nextArgument;
+    return 0;
 }
 
 int handleModeOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument) {
@@ -89,17 +117,6 @@ int handleVerboseOption(std::map<std::string, std::string> &optionMap, const std
     }
 }
 
-int handleOutputOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument) {
-    if (checkDuplicateFlag(optionMap, currentFlag))
-        return 1;
-    if (checkMissingArgument(currentFlag, nextArgument))
-        return 1;
-    if (checkInvalidFileName(currentFlag, nextArgument))
-        return 1;
-    optionMap[currentFlag] = nextArgument;
-    return 0;
-}
-
 bool checkDuplicateFlag(const std::map<std::string, std::string> &optionMap, const std::string &currentFlag) {
     if (optionMap.count(currentFlag) > 0) {
         handleDuplicateFlag(currentFlag);
@@ -117,7 +134,7 @@ bool checkMissingArgument(const std::string &currentFlag, const std::string &nex
 }
 
 bool checkInvalidFileName(const std::string &currentFlag, const std::string &nextArgument) {
-    // Invalid characters for file
+    // File name cannot contain \ / : * ? " < > |
     const std::string invalidCharacters = "\\/:*?\"<>|";
     for (char c : invalidCharacters) {
         if (nextArgument.find(c) != std::string::npos) {
@@ -125,11 +142,22 @@ bool checkInvalidFileName(const std::string &currentFlag, const std::string &nex
             return true;
         }
     }
-    // File cannot end with a '.'
+    // File name cannot end with a '.'
     if (nextArgument.back() == '.') {
         handleInvalidArgument(currentFlag, nextArgument);
         return true;
     }
+    return false;
+}
+
+bool checkMissingFile(const std::string &currentFlag, const std::string &nextArgument) {
+    std::ifstream file(nextArgument);
+    if (!file.is_open()) {
+        file.close();
+        handleMissingFile(currentFlag, nextArgument);
+        return true;
+    }
+    file.close();
     return false;
 }
 
@@ -156,4 +184,8 @@ void handleInvalidArgument(const std::string &currentFlag, const std::string &ne
 
 void handleInvalidFileName(const std::string &currentFlag, const std::string &nextArgument) {
     std::cerr << BRIGHT_RED << "Invalid file name '" << nextArgument << "' for '" << currentFlag << "'" << RESET << std::endl;
+}
+
+void handleMissingFile(const std::string &currentFlag, const std::string &nextArgument) {
+    std::cerr << BRIGHT_RED << "Cannot find file '" << nextArgument << "' for '" << currentFlag << "'" << RESET << std::endl;
 }
