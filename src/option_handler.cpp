@@ -1,21 +1,12 @@
 #include "../include/option_handler.h"
 
 #include "../include/file_reader.h"
+#include <iostream>
 #include <fstream>
 
 #define RESET         "\033[0m"
 #define BRIGHT_RED    "\033[91m"
 #define BRIGHT_YELLOW "\033[93m"
-
-/*
-Arguments:
--i input
--o outputfile.txt (output)
--m file/lines/words (mode)
--v true/false (verbose)
-*/
-
-// first we read the file input (necessary)
 
 int handleOptions(int argc, char* argv[]) {
     std::map<std::string, std::string> optionMap;
@@ -72,7 +63,7 @@ int handleOptionFlow(std::map<std::string, std::string> &optionMap) {
             for (const auto& line : fileContents) {
                 outputFile << line << std::endl;
             }
-            std::cout << "File content written to '" << fileName << "'" << std::endl << std::endl;
+            std::cout << "File content written to '" << fileName << "'" << std::endl;
             outputFile.close();
         } else {
             std::cerr << BRIGHT_RED << "Cannot open file '" << fileName << "'" << RESET << std::endl;
@@ -81,6 +72,7 @@ int handleOptionFlow(std::map<std::string, std::string> &optionMap) {
     }
     if (optionMap.count("-v") > 0 && optionMap["-v"] == "false") { }
     else {
+        std::cout << std::endl;
         for (const std::string &content : fileContents) {
             std::cout << content << std::endl;
         }
@@ -89,12 +81,12 @@ int handleOptionFlow(std::map<std::string, std::string> &optionMap) {
 }
 
 void help() {
-    std::cout << "Options:" << std::endl;
-    std::cout << "-h show options" << std::endl;
-    std::cout << "-i set input file" << std::endl;
-    std::cout << "-o set output file" << std::endl;
-    std::cout << "-m set mode" << std::endl;
-    std::cout << "-v print output" << std::endl;
+    std::cout << std::endl << "Options:" << std::endl;
+    std::cout << "-h               Show options" << std::endl;
+    std::cout << "-i <file_path>   Set input file (required)" << std::endl;
+    std::cout << "-o <file_name>   Set output file" << std::endl;
+    std::cout << "-m <lines/words> Set mode (default: lines)" << std::endl;
+    std::cout << "-v <true/false>  Print output (default: true)" << std::endl;
 }
 
 int handleInputOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument) {

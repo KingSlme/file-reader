@@ -3,7 +3,6 @@
 
 #include <string>
 #include <map>
-#include <iostream>
 
 int handleOptions(int argc, char* argv[]);
 
