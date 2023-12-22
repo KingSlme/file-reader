@@ -1,7 +1,11 @@
 #include "../include/option_handler.h"
-#include "../include/data_handler.h"
-#include "../include/file_reader.h"
+
+
 
 int main(int argc, char* argv[]) {
-    return handleOptions(argc, argv);
+    int exitCode = handleOptions(argc, argv);
+    std::cout << std::endl << "Run again with options in terminal" << std::endl;
+    std::string userInput;
+    std::getline(std::cin, userInput);
+    return exitCode;
 }

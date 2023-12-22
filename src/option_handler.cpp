@@ -1,6 +1,6 @@
 #include "../include/option_handler.h"
 
-#include <iostream>
+#include "../include/file_reader.h"
 #include <fstream>
 
 #define RESET         "\033[0m"
@@ -14,6 +14,8 @@ Arguments:
 -m file/lines/words (mode)
 -v true/false (verbose)
 */
+
+// first we read the file input (necessary)
 
 int handleOptions(int argc, char* argv[]) {
     std::map<std::string, std::string> optionMap;
@@ -46,8 +48,42 @@ int handleOptions(int argc, char* argv[]) {
             return 1;
         }
     }
-    for (const auto &pair : optionMap) {
-        std::cout << "Key: " << pair.first << ", Value: " << pair.second << std::endl;
+    return handleOptionFlow(optionMap);
+}
+
+int handleOptionFlow(std::map<std::string, std::string> &optionMap) {
+    if (optionMap.count("-i") == 0) {
+        std::cerr << BRIGHT_RED << "Missing required option '-i'" << RESET << std::endl;
+        return 1;
+    }
+    std::vector<std::string> fileContents;
+    if (optionMap.count("-m") > 0) {
+        fileContents = readFile(optionMap["-i"], optionMap["-m"]);
+    }
+    else {
+        fileContents = readFile(optionMap["-i"], "lines");
+    }
+    if (optionMap.count("-o") > 0) {
+        std::string fileName = optionMap["-o"];
+        if (fileName.length() <= 4 || fileName.substr(fileName.length() - 4) != ".txt")
+            fileName = fileName + ".txt";
+        std::ofstream outputFile(fileName);
+        if (outputFile.is_open()) {
+            for (const auto& line : fileContents) {
+                outputFile << line << std::endl;
+            }
+            std::cout << "File content written to '" << fileName << "'" << std::endl << std::endl;
+            outputFile.close();
+        } else {
+            std::cerr << BRIGHT_RED << "Cannot open file '" << fileName << "'" << RESET << std::endl;
+            return 1;
+        }
+    }
+    if (optionMap.count("-v") > 0 && optionMap["-v"] == "false") { }
+    else {
+        for (const std::string &content : fileContents) {
+            std::cout << content << std::endl;
+        }
     }
     return 0;
 }
