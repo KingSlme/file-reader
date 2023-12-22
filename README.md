@@ -1,5 +1,5 @@
 # file-reader
-*Tool to read content of files.*
+Tool to read content of files.
 
 ## Key Features
 * Read lines or words from any file
