@@ -3,9 +3,11 @@
 
 #include <string>
 #include <map>
+#include <iostream>
 
 int handleOptions(int argc, char* argv[]);
 
+int handleOptionFlow(std::map<std::string, std::string> &optionMap);
 void help();
 
 int handleInputOption(std::map<std::string, std::string> &optionMap, const std::string &currentFlag, const std::string &nextArgument);
